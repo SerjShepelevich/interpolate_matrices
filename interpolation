@@ -1,0 +1,27 @@
+   from scipy.spatial.transform import Rotation as R, Slerp
+   import numpy as np
+   
+   def interpolate_matrices(mat1, mat2, t):
+        '''mat1, mat2 - np.array [4x4]'''
+        # Интерполяция позиции (трансляции) с помощью slerp
+        position1 = mat1[:3, 3]
+        position2 = mat2[:3, 3]
+        interpolated_position = lerp(position1, position2, t)
+        # Интерполяция вращения с помощью Slerp
+        rotation1 = R.from_matrix(mat1[:3, :3])
+        rotation2 = R.from_matrix(mat2[:3, :3])
+        key_rots = R.from_rotvec([rotation1.as_rotvec(), rotation2.as_rotvec()])
+        key_times = [0, 1]
+        slerp = Slerp(key_times, key_rots)
+        interpolated_rotation = slerp([t])[0].as_matrix()
+        # Создание результирующей матрицы 4x4
+        interpolated_matrix = np.eye(4)
+        interpolated_matrix[:3, :3] = interpolated_rotation
+        interpolated_matrix[:3, 3] = interpolated_position
+        return interpolated_matrix
+        
+   def lerp(one, two, t):
+        """Linear intERPolation."""
+        one = np.asarray(one)
+        two = np.asarray(two)
+        return (1 - t) * one + t * two
